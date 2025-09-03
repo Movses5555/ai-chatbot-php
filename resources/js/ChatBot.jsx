@@ -23,7 +23,7 @@ function ChatBot() {
       })
   }, [])
 
-  console.log('products', products);
+  console.log('products===', products);
   
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -36,40 +36,62 @@ function ChatBot() {
       .map((p) => `${p.name}, price: $${p.price}, description: ${p.description}`)
       .join(" | ");
 
-      console.log('productsContext', productsContext);
+    console.log('productsContext', productsContext);
       
-    try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an assistant knowledgeable about products. Respond only based on the provided data, in English. You are allowed to present product names, prices, and descriptions. Recommend only products that are in the list.",
-            },
-            {
-              role: "system",
-              content: `Product list: ${productsContext}`,
-            },
-            { role: "user", content: userMessage.text },
-          ],
-        }),
-      });
+    let botMessage = { from: "bot", text: "Sorry, I can only provide information about the products in the list." };
+    let productFound = false;
 
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Error from AI or no response.";
-
-      setMessages((m) => [...m, { from: "bot", text: reply }]);
-    } catch (error) {
-      console.error("AI request error:", error);
-      setMessages((m) => [...m, { from: "bot", text: "Sorry, an error occurred. Please try again." }]);
+    for (const product of products) {
+      console.log('Checking product:', product);
+      
+      if (input.toLowerCase().includes(product.name.toLowerCase())) {
+        botMessage = {
+          from: "bot",
+          text: `I recommend the ${product.name}, priced at $${product.price}. It is a ${product.description}.`,
+          image: product.image || null,
+        };
+        productFound = true;
+        break;
+      }
     }
+
+    if (!productFound) {
+      try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an assistant knowledgeable about products. Respond only based on the provided data, in English. You are allowed to present product names, prices, and descriptions. Recommend only products that are in the list.",
+              },
+              {
+                role: "system",
+                content: `Product list: ${productsContext}`,
+              },
+              { role: "user", content: userMessage.text },
+            ],
+          }),
+        });
+
+        const data = await res.json();
+        const reply = data.choices?.[0]?.message?.content || "Error from AI or no response.";
+        botMessage = { from: "bot", text: reply };
+
+      } catch (error) {
+        console.error("AI request error:", error);
+        botMessage = { from: "bot", text: "Sorry, an error occurred. Please try again." };
+      }
+    }
+    console.log('botMessage', botMessage);
+    
+    setMessages((m) => [...m, botMessage]);
   };
 
   return (
@@ -101,6 +123,14 @@ function ChatBot() {
                   }`}
                 >
                   {msg.text}
+                  {msg.image && (
+                    <img
+                      src={msg.image}
+                      alt="Product"
+                      className="product-image"
+                      style={{ marginTop: '0.5rem', maxWidth: '100%', borderRadius: '0.5rem' }}
+                    />
+                  )}
                 </div>
               </div>
             ))}
