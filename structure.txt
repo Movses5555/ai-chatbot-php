@@ -1,0 +1,123 @@
+.
+├── app
+│   ├── Console
+│   │   └── Kernel.php
+│   ├── Exceptions
+│   │   └── Handler.php
+│   ├── Http
+│   │   ├── Controllers
+│   │   │   ├── Api
+│   │   │   │   └── ProductController.php
+│   │   │   └── Controller.php
+│   │   ├── Kernel.php
+│   │   └── Middleware
+│   │       ├── Authenticate.php
+│   │       ├── EncryptCookies.php
+│   │       ├── PreventRequestsDuringMaintenance.php
+│   │       ├── RedirectIfAuthenticated.php
+│   │       ├── TrimStrings.php
+│   │       ├── TrustHosts.php
+│   │       ├── TrustProxies.php
+│   │       ├── ValidateSignature.php
+│   │       └── VerifyCsrfToken.php
+│   ├── Models
+│   │   ├── Product.php
+│   │   └── User.php
+│   └── Providers
+│       ├── AppServiceProvider.php
+│       ├── AuthServiceProvider.php
+│       ├── BroadcastServiceProvider.php
+│       ├── EventServiceProvider.php
+│       └── RouteServiceProvider.php
+├── artisan
+├── bootstrap
+│   ├── app.php
+│   └── cache
+│       ├── packages.php
+│       └── services.php
+├── composer.json
+├── composer.lock
+├── config
+│   ├── app.php
+│   ├── auth.php
+│   ├── broadcasting.php
+│   ├── cache.php
+│   ├── cors.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── hashing.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── sanctum.php
+│   ├── services.php
+│   ├── session.php
+│   └── view.php
+├── database
+│   ├── factories
+│   │   └── UserFactory.php
+│   ├── migrations
+│   │   ├── 2014_10_12_000000_create_users_table.php
+│   │   ├── 2014_10_12_100000_create_password_reset_tokens_table.php
+│   │   ├── 2019_08_19_000000_create_failed_jobs_table.php
+│   │   ├── 2019_12_14_000001_create_personal_access_tokens_table.php
+│   │   └── 2025_09_01_200314_create_products_table.php
+│   └── seeders
+│       ├── DatabaseSeeder.php
+│       └── ProductSeeder.php
+├── package.json
+├── package-lock.json
+├── phpunit.xml
+├── public
+│   ├── favicon.ico
+│   ├── hot
+│   ├── index.php
+│   └── robots.txt
+├── README.md
+├── resources
+│   ├── css
+│   │   └── app.css
+│   ├── js
+│   │   ├── app.jsx
+│   │   ├── bootstrap.js
+│   │   └── ChatBot.jsx
+│   └── views
+│       ├── app.blade.php
+│       └── welcome.blade.php
+├── routes
+│   ├── api.php
+│   ├── channels.php
+│   ├── console.php
+│   └── web.php
+├── storage
+│   ├── app
+│   │   └── public
+│   ├── framework
+│   │   ├── cache
+│   │   │   └── data
+│   │   │       ├── c0
+│   │   │       │   └── 71
+│   │   │       │       └── c071422490d526a8aada046adf3a9c9fa0593468
+│   │   │       └── ec
+│   │   │           └── c4
+│   │   │               └── ecc49f49f4da6b940dcde13f0571e79c299871e6
+│   │   ├── sessions
+│   │   │   └── 6EoOnN0g286j7Dk0t41vpWDDFSJbwOdJrMRPvlHU
+│   │   ├── testing
+│   │   └── views
+│   │       ├── 0beb56df12d396943de710f5abaee32e.php
+│   │       ├── 53032a57dba6a4a3c0a1f01e9c325d16.php
+│   │       └── 6eb400eb11df019ee0c8ced23e135ead.php
+│   └── logs
+│       └── laravel.log
+├── structure.txt
+├── tests
+│   ├── CreatesApplication.php
+│   ├── Feature
+│   │   └── ExampleTest.php
+│   ├── TestCase.php
+│   └── Unit
+│       └── ExampleTest.php
+└── vite.config.js
+
+39 directories, 81 files
