@@ -33,12 +33,12 @@ class DemoDataSeeder extends Seeder
         $nike = Brand::create(['name' => 'Nike']);
         $apple = Brand::create(['name' => 'Apple']);
 
-        $headphoneImage = Image::create(['url' => '/img/headphones.jpg']);
-        $jacketImage = Image::create(['url' => '/img/winter_jacket.jpg']);
-        $nikeImage = Image::create(['url' => '/img/nike.jpg']);
-        $sonyImage = Image::create(['url' => '/img/sony.jpg']);
-        $appleImage = Image::create(['url' => '/img/apple.jpg']);
-        $clothingImage = Image::create(['url' => '/img/winter_clothing.jpg']);
+        $headphoneImage = Image::create(['url' => 'https://kreo-tech.com/cdn/shop/files/Artboard_1_9.png?v=1753673089']);
+        $jacketImage = Image::create(['url' => 'https://m.media-amazon.com/images/I/61iBJGpSSVL._UY1000_.jpg']);
+        $nikeImage = Image::create(['url' => 'https://cdn-images.farfetch-contents.com/21/54/29/78/21542978_51590537_600.jpg']);
+        $sonyImage = Image::create(['url' => 'https://eldorado.am/media/catalog/product/cache/b636eac9f5e866652b5cbe8cee86d97c/s/o/sony_a7_iv_2_.jpg']);
+        $appleImage = Image::create(['url' => 'https://www.apple.com/newsroom/videos/videos-2024/autoplay/2024/09/apple-intelligence-siri/posters/Apple-Intelligence-Siri.jpg.large_2x.jpg']);
+        $clothingImage = Image::create(['url' => 'https://t3.ftcdn.net/jpg/01/20/36/84/360_F_120368458_jM1rSc1O5k58W6KM4aaexJnVpTaD768g.jpg']);
 
 
         $productsData = [
@@ -48,7 +48,7 @@ class DemoDataSeeder extends Seeder
                 'price' => 250,
                 'discount' => 10,
                 'category_id' => $electronics->id,
-                'brand_id' => $sony->id,
+                'brand_id' => $apple->id,
                 'general_image_id' => $headphoneImage->id,
             ],
             [
@@ -58,7 +58,7 @@ class DemoDataSeeder extends Seeder
                 'discount' => 0,
                 'category_id' => $clothing->id,
                 'brand_id' => $nike->id,
-                'general_image_id' => $nikeImage->id,
+                'general_image_id' => $jacketImage->id,
             ],
             [
                 'title' => 'Noise Cancelling Headphones',
@@ -67,7 +67,7 @@ class DemoDataSeeder extends Seeder
                 'discount' => 10,
                 'category_id' => $electronics->id,
                 'brand_id' => $sony->id,
-                'general_image_id' => $sonyImage->id,
+                'general_image_id' => $headphoneImage->id,
             ],
             [
                 'title' => 'Basic USB Mouse',
@@ -113,7 +113,7 @@ class DemoDataSeeder extends Seeder
                 'last_updated_admin_id' => null,
                 'free_shipping_distance' => 0,
                 'free_shipping_distance_type_id' => 2,
-                'in_stock' => 1,
+                'in_stock' => 10,
                 'currency' => 'USD',
                 'rate' => null,
                 'status' => 1, 
