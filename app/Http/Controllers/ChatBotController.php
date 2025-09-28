@@ -174,7 +174,9 @@ class ChatBotController extends Controller
 
             return $productArray;
         })->keyBy('id')->toArray();
-        
+        \Log::info('Full products data prepared for AI: ' . json_encode($fullProductsData));
+
+         // Prepare product context for AI
 
         $productContext = "No specific products found.";
 
@@ -190,6 +192,8 @@ class ChatBotController extends Controller
                 )
                 ->implode(";\n");
         }
+
+        \Log::info('Product context for AI: ' . $productContext);
 
         $systemPrompt = "You are a product selection AI. Your task is to analyze the user's request and the provided product list, and select the top 5 most relevant product IDs.
 
@@ -223,7 +227,7 @@ class ChatBotController extends Controller
 
             $aiJsonContent = $result['choices'][0]['message']['content'];
             $finalData = json_decode($aiJsonContent, true); 
-            
+            \Log::info('Final AI response data: ' . $aiJsonContent);
             $selectedIds = $finalData['selected_ids'] ?? null;
             $finalProductsList = [];
 
