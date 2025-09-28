@@ -105,10 +105,8 @@ class DemoDataSeeder extends Seeder
                 'price' => $data['price'],
                 'discount' => $data['discount'],
                 'general_image_id' => $data['general_image_id'],
-                
                 'is_top' => 0,
                 'is_banner' => 0,
-                'general_image_id' => null,
                 'admin_id' => 1,
                 'last_updated_admin_id' => null,
                 'free_shipping_distance' => 0,
