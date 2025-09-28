@@ -35,6 +35,7 @@ class ChatBotController extends Controller
 
     public function handleMessage(Request $request)
     {
+        \Log::info('Received user message: ' . $request->input('message'));
         $userMessage = $request->input('message');
         $categoryNames = [];
         $generalCategory = true;
@@ -59,15 +60,22 @@ class ChatBotController extends Controller
             $aiClassification = $result['choices'][0]['message']['content'];
             $classificationData = json_decode($aiClassification, true);
             
+            \Log::info('Category classification result: ' . $aiClassification);
             $categoryNames = $classificationData['categories'] ?? [];
             if (!empty($categoryNames)) {
                 $generalCategory = false;
             }
         } catch (\Exception $e) {
+            \Log::error("Category Classification Error: " . $e->getMessage());
             return response()->json(['message' => 'Sorry, I am having trouble connecting to my brain. Please try again later.'], 500);
         }
 
 
+
+        \Log::info('Extracted categories: ' . implode(', ', $categoryNames));
+
+        
+         // Verify categories exist and have products
         $verifiedCategoryNames = [];
 
         if (!empty($categoryNames)) {
@@ -95,6 +103,7 @@ class ChatBotController extends Controller
             }
         }
 
+        \Log::info('Verified categories with products: ' . implode(', ', $categoryNames));
 
         $products = collect();
         $foundCategoriesCount = count($categoryNames);
@@ -146,6 +155,7 @@ class ChatBotController extends Controller
             $generalCategory = true;
         }
 
+        \Log::info('Total products fetched: ' . $products->count());
                 
         $fullProductsData = $products->map(function($p) {
             $productArray = $p->toArray();
