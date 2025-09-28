@@ -155,7 +155,7 @@ class ChatBotController extends Controller
             $generalCategory = true;
         }
 
-        \Log::info('Total products fetched: ' . $products->count());
+        \Log::info('Total products fetched: ' . $products);
                 
         $fullProductsData = $products->map(function($p) {
             $productArray = $p->toArray();
