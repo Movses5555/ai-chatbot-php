@@ -116,7 +116,7 @@ function ChatBot() {
                             style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', marginBottom: '5px' }} 
                           />
                           <strong style={{ display: 'block' }}>{product.name}</strong>
-                          <span style={{ color: '#007bff' }}>{product.price}</span>
+                          <span style={{ color: '#007bff' }}>{product.price} {product.currency}</span>
                           <p style={{ fontSize: '0.9em', marginTop: '5px' }}>
                             {product.description}
                           </p>
