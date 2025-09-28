@@ -116,7 +116,7 @@ class DemoDataSeeder extends Seeder
                 'in_stock' => 10,
                 'currency' => 'USD',
                 'rate' => null,
-                'status' => 1, 
+                'status' => '1', 
             ]);
         }
     }
