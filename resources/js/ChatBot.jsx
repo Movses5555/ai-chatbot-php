@@ -83,7 +83,24 @@ function ChatBot() {
               className="chatbot-close-button"
               aria-label="Close chat"
             >
-              ✖
+              <svg
+                version="1.1" 
+                id="Layer_1" 
+                xmlns="http://www.w3.org/2000/svg" 
+                xmlns:xlink="http://www.w3.org/1999/xlink" 
+                x="0px" 
+                y="0px" 
+                width="20px" 
+                height="20px" 
+                viewBox="0 0 121.31 122.876" 
+                enable-background="new 0 0 121.31 122.876" 
+                xml:space="preserve"
+                style={{ fill: 'white' }}
+              >
+                <g>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M90.914,5.296c6.927-7.034,18.188-7.065,25.154-0.068 c6.961,6.995,6.991,18.369,0.068,25.397L85.743,61.452l30.425,30.855c6.866,6.978,6.773,18.28-0.208,25.247 c-6.983,6.964-18.21,6.946-25.074-0.031L60.669,86.881L30.395,117.58c-6.927,7.034-18.188,7.065-25.154,0.068 c-6.961-6.995-6.992-18.369-0.068-25.397l30.393-30.827L5.142,30.568c-6.867-6.978-6.773-18.28,0.208-25.247 c6.983-6.963,18.21-6.946,25.074,0.031l30.217,30.643L90.914,5.296L90.914,5.296z"/>
+                </g>
+              </svg>
             </button>
           </div>
           <div className="chatbot-messages">
@@ -110,18 +127,66 @@ function ChatBot() {
                             backgroundColor: '#f9f9f9',
                             borderRadius: '8px' 
                         }}>
-                          <img 
-                            src={product.image_url} 
-                            alt={product.name} 
-                            style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', marginBottom: '5px' }} 
-                          />
-                          <strong style={{ display: 'block' }}>{product.name}</strong>
-                          <span style={{ color: '#007bff' }}>{product.price} {product.currency}</span>
-                          <p style={{ fontSize: '0.9em', marginTop: '5px' }}>
+                          <div style={{ position: 'relative', width: '100%',  }}>
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', marginBottom: '5px' }} 
+                            />
+                            {
+                              product.discount > 0 && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '0',
+                                  right: '0',
+                                  backgroundColor: 'red',
+                                  color: 'white',
+                                  padding: '2px 8px',
+                                  borderTopRightRadius: '4px',
+                                  borderBottomLeftRadius: '4px',
+                                  fontSize: '16px',
+                                  fontWeight: 'bold',
+                                }}>
+                                  <span>-{product.discount}%</span>
+                                </div>
+                              )
+                            }
+                          </div>
+                          <strong style={{ display: 'block', color: '#212121' }}>{product.name}</strong>
+                          <div className="price">
+                            {
+                              product.discount > 0 && (
+                                <span style={{ 
+                                  textDecoration: 'line-through', 
+                                  color: '#C1C1C1', 
+                                  marginRight: '8px' 
+                                }}>
+                                  {product.price}
+                                </span>
+                              )
+                            }
+                            <span
+                              style={{ fontSize: '20px', fontWeight: 'bold', color: '#10b981' }}
+                              className="actual-price"
+                            >
+                              {product.actual_price}
+                            </span>
+                          </div>
+                          <p style={{ 
+                            fontSize: '14px', 
+                            marginTop: '5px', 
+                            lineHeight: '150%', 
+                            color: '#212121',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>
                             {product.description}
                           </p>
                           <a 
-                            href={`/products/${product.slug}`}
+                            href={`/products/${product.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
@@ -176,7 +241,12 @@ function ChatBot() {
           className="chatbot-floating-button"
           aria-label="Open chat"
         >
-          💬
+          <svg 
+            style={{ width: '32px', height: '32px', fill: 'white' }}
+            id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 107.09">
+            <title>chat-bubble</title>
+            <path d="M63.08,0h.07C79.93.55,95,6.51,105.75,15.74c11,9.39,17.52,22.16,17.11,36.09v0a42.67,42.67,0,0,1-7.58,22.87A55,55,0,0,1,95.78,92a73.3,73.3,0,0,1-28.52,8.68,62.16,62.16,0,0,1-27-3.63L6.72,107.09,16.28,83a49.07,49.07,0,0,1-10.91-13A40.16,40.16,0,0,1,.24,45.55a44.84,44.84,0,0,1,9.7-23A55.62,55.62,0,0,1,26.19,8.83,67,67,0,0,1,43.75,2,74.32,74.32,0,0,1,63.07,0Zm24.18,42a7.78,7.78,0,1,1-7.77,7.78,7.78,7.78,0,0,1,7.77-7.78Zm-51.39,0a7.78,7.78,0,1,1-7.78,7.78,7.79,7.79,0,0,1,7.78-7.78Zm25.69,0a7.78,7.78,0,1,1-7.77,7.78,7.78,7.78,0,0,1,7.77-7.78Zm1.4-36h-.07A68.43,68.43,0,0,0,45.14,7.85a60.9,60.9,0,0,0-16,6.22A49.65,49.65,0,0,0,14.66,26.32,38.87,38.87,0,0,0,6.24,46.19,34.21,34.21,0,0,0,10.61,67,44.17,44.17,0,0,0,21.76,79.67l1.76,1.39L16.91,97.71l23.56-7.09,1,.38a56,56,0,0,0,25.32,3.6,67,67,0,0,0,26.16-8A49,49,0,0,0,110.3,71.36a36.86,36.86,0,0,0,6.54-19.67v0c.35-12-5.41-23.1-15-31.33C92.05,11.94,78.32,6.52,63,6.06Z"/>
+          </svg>
         </button>
       )}
 

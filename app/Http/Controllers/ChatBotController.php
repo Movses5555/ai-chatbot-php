@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class ChatBotController extends Controller
 {
-    protected $openaiClient;
+    protected Client $openaiClient;
     protected $availableCategories;
 
     public function __construct()
@@ -24,21 +24,23 @@ class ChatBotController extends Controller
                 'Content-Type' => 'application/json',
             ],
         ]);
-        
+
         $this->availableCategories = Category::whereHas('products', function ($query) {
-                $query->where('status', '1')
-                    ->where('in_stock', '>', 0);
-            })
-            ->pluck('name')
-            ->implode(', ');
+            $query->where('status', '1')
+                ->where('in_stock', '>', 0);
+        })->get()->mapWithKeys(function ($category) {
+            return [$category->name => $category->name_id];
+        })->toArray();
     }
 
-    public function handleMessage(Request $request)
+    public function handleMessage(Request $request): JsonResponse
     {
+        $categoryNamesList = implode(', ', array_keys($this->availableCategories));
         \Log::info('Received user message: ' . $request->input('message'));
         $userMessage = $request->input('message');
         $categoryNames = [];
         $generalCategory = true;
+        $a = "You are a category classifier. Your only task is to identify ALL product categories the user's message is asking about from the list: [{$categoryNamesList}]. If multiple categories are mentioned, return all of them exactly as they appear in the list. If it is a general greeting or not product related, return an empty array []. **Return the output strictly as a JSON object with a single key 'categories' being an array of strings**.";
 
         try {
             $response = $this->openaiClient->post('chat/completions', [
@@ -47,8 +49,8 @@ class ChatBotController extends Controller
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => "You are a category classifier. Your only task is to identify ALL product categories the user's message is asking about from the list: [{$this->availableCategories}]. If multiple categories are mentioned, return all of them exactly as they appear in the list. If it is a general greeting or not product related, return an empty array []. **Return the output strictly as a JSON object with a single key 'categories' being an array of strings**."
-                ],
+                            'content' => $a,
+                        ],
                         ['role' => 'user', 'content' => $userMessage],
                     ],
                     'response_format' => ['type' => 'json_object'],
@@ -59,7 +61,7 @@ class ChatBotController extends Controller
             $result = json_decode($response->getBody()->getContents(), true);
             $aiClassification = $result['choices'][0]['message']['content'];
             $classificationData = json_decode($aiClassification, true);
-            
+
             \Log::info('Category classification result: ' . $aiClassification);
             $categoryNames = $classificationData['categories'] ?? [];
             if (!empty($categoryNames)) {
@@ -69,33 +71,30 @@ class ChatBotController extends Controller
             \Log::error("Category Classification Error: " . $e->getMessage());
             return response()->json(['message' => 'Sorry, I am having trouble connecting to my brain. Please try again later.'], 500);
         }
-
-
-
         \Log::info('Extracted categories: ' . implode(', ', $categoryNames));
 
-        
-         // Verify categories exist and have products
         $verifiedCategoryNames = [];
 
         if (!empty($categoryNames)) {
             foreach ($categoryNames as $name) {
-                $category = Category::where('name', $name)->first();
-                
+                $categoryId = $this->availableCategories[$name] ?? null;
+
+                $category = Category::where('name_id', $categoryId)->first();
+
                 if ($category) {
                     $hasAvailableProducts = $category->products()
-                                                    ->where('status', '1')
-                                                    ->where('in_stock', '>', 0)
-                                                    ->exists();
-                    
+                        ->where('status', '1')
+                        ->where('in_stock', '>', 0)
+                        ->exists();
+
                     if ($hasAvailableProducts) {
                         $verifiedCategoryNames[] = $name;
                     }
                 }
             }
-            
+
             $categoryNames = $verifiedCategoryNames;
-            
+
             if (empty($categoryNames)) {
                 $generalCategory = true;
             } else {
@@ -112,7 +111,7 @@ class ChatBotController extends Controller
 
         if ($foundCategoriesCount > 0) {
             if ($foundCategoriesCount >= $maxTotalProducts) {
-                $limitPerCategory = 1; 
+                $limitPerCategory = 1;
             } elseif ($foundCategoriesCount > 5) {
                 $limitPerCategory = 1;
             } else {
@@ -122,31 +121,34 @@ class ChatBotController extends Controller
 
             foreach ($categoryNames as $name) {
                 if ($products->count() >= $maxTotalProducts) {
-                    break; 
+                    break;
                 }
 
-                $category = Category::where('name', $name)->first();
-                
+                $categoryId = $this->availableCategories[$name] ?? null;
+
+                $category = Category::where('name_id', $categoryId)->first();
+
                 if ($category) {
                     try {
                         $remainingLimit = $maxTotalProducts - $products->count();
                         $currentLimit = min($limitPerCategory, $remainingLimit);
 
                         if ($currentLimit <= 0) {
-                            break; 
+                            break;
                         }
 
+
                         $categoryProducts = $category->products()
-                            ->where('status', '1')
+                            ->where('status', "1")
                             ->where('in_stock', '>', 0)
-                            ->with(['text', 'brand', 'generalImage'])
+                            ->with(['brand', 'generalImage'])
                             ->take($currentLimit)
                             ->get();
 
                         $products = $products->merge($categoryProducts);
-                        
+
                     } catch (\Exception $e) {
-                        continue; 
+                        continue;
                     }
                 }
             }
@@ -154,19 +156,17 @@ class ChatBotController extends Controller
         } else {
             $generalCategory = true;
         }
-
         \Log::info('Total products fetched: ' . $products);
-                
+
         $fullProductsData = $products->map(function($p) {
             $productArray = $p->toArray();
 
-            $productArray['name'] = $p->text?->title ?? 'N/A';
-            $productArray['description'] = $p->text?->description ?? 'N/A';
-            $productArray['brand_name'] = $p->brand?->name ?? 'N/A';
+            $productArray['name'] = $p->title ?? 'N/A';
+            $productArray['description'] = $p->description ?? 'N/A';
+            $productArray['brand_name'] = $p->brand->name ?? 'N/A';
 
-            $productArray['image_url'] = $p->generalImage?->url ?? null;
-            $productArray['slug'] = 'product-' . $p->id;
-            
+            $productArray['image_url'] = 'images/products/' . $p->generalImage->image_name ?? null;
+
             unset($productArray['title_id']);
             unset($productArray['description_id']);
             unset($productArray['general_image_id']);
@@ -174,40 +174,46 @@ class ChatBotController extends Controller
 
             return $productArray;
         })->keyBy('id')->toArray();
+
         \Log::info('Full products data prepared for AI: ' . json_encode($fullProductsData));
 
-         // Prepare product context for AI
 
         $productContext = "No specific products found.";
 
         if ($products->isNotEmpty()) {
             $productContext = $products
-                ->map(fn($p) => 
-                    "Product ID: {$p->id}, 
-                    Name: " . ($p->text?->title ?? 'N/A') . ", 
-                    Brand: " . ($p->brand?->name ?? 'N/A') . ", 
-                    Price: \${$p->price}, 
-                    Discount: {$p->discount}%,
-                    Features: " . ($p->text?->description ?? 'N/A') . "", 
-                )
-                ->implode(";\n");
-        }
+                ->map(function ($p) {
+                    $discountedPrice = PriceHelper::getPriceDiscounted($p);
+                    $actualPrice = PriceHelper::getPriceShow($p);
 
-        \Log::info('Product context for AI: ' . $productContext);
+                    $discountText = ($discountedPrice != $p->price) ? "-{$p->discount}%" : "0%";
+                    $actualPriceText = ($discountedPrice != $p->price) ? "{$actualPrice}֏" : '';
 
-        $systemPrompt = "You are a product selection AI. Your task is to analyze the user's request and the provided product list, and select the top 5 most relevant product IDs.
+                    return "Product ID: {$p->id},
+                            Name: " . ($p->title ?? 'N/A') . ",
+                            Brand: " . ($p->brand?->name ?? 'N/A') . ",
+                            Old Price: {$discountedPrice}" . ($actualPriceText ? ",
+                            Actual Price: {$actualPriceText}֏,
+                            Discount: {$discountText}" : '') . ",
+                            Features: " . ($p->text?->description ?? 'N/A');
+                                            })
+                    ->implode(";\n");
+            }
+            \Log::info('Product context for AI: ' . $productContext);
 
-        **Instructions for JSON Output:**
-        1.  The JSON MUST have two keys: **'text_response'** (string) and **'selected_ids'** (an array of integers or null).
-        2.  **Product Context includes:** Product ID, Name, Brand, Price, Discount percentage, and Features (snippet of description).
-        3.  **If the Product List is NOT 'No specific products found.':**
-            a. Analyze the user message based on Name, Price, Brand, and Discount, and return the IDs of the top 5 most relevant products.
-            b. 'selected_ids' value MUST be an **ARRAY of product IDs (integers)**.
-        4.  **If the Product List is 'No specific products found.' or category is GENERAL...:**
-            a. Set 'selected_ids' to **null**.;
-            b. Use 'text_response' to offer general help and note that categories {$this->availableCategories}, but keep in mind that if the conversation is clearly about a specific category or categories, mention only the relevant categories when necessary.";
-        
-        
+            $systemPrompt = "You are a product selection AI. Your task is to analyze the user's request and the provided product list, and select the top 5 most relevant product IDs.
+
+            **Instructions for JSON Output:**
+            1.  The JSON MUST have two keys: **'text_response'** (string) and **'selected_ids'** (an array of integers or null).
+            2.  **Product Context includes:** Product ID, Name, Brand, Price, Discount percentage, and Features (snippet of description).
+            3.  **If the Product List is NOT 'No specific products found.':**
+                a. Analyze the user message based on Name, Price, Brand, and Discount, and return the IDs of the top 5 most relevant products.
+                b. 'selected_ids' value MUST be an **ARRAY of product IDs (integers)**.
+            4.  **If the Product List is 'No specific products found.' or category is GENERAL...:**
+                a. Set 'selected_ids' to **null**.;
+                b. Use 'text_response' to offer general help and note that categories {$categoryNamesList}, but keep in mind that if the conversation is clearly about a specific category or categories, mention only the relevant categories when necessary.";
+
+
         try {
             $response = $this->openaiClient->post('chat/completions', [
                 'json' => [
@@ -226,26 +232,31 @@ class ChatBotController extends Controller
             $result = json_decode($responseBody, true);
 
             $aiJsonContent = $result['choices'][0]['message']['content'];
-            $finalData = json_decode($aiJsonContent, true); 
+            $finalData = json_decode($aiJsonContent, true);
             \Log::info('Final AI response data: ' . $aiJsonContent);
             $selectedIds = $finalData['selected_ids'] ?? null;
             $finalProductsList = [];
 
             if (!empty($selectedIds) && is_array($selectedIds) && !empty($fullProductsData)) {
-                
+
                 foreach ($selectedIds as $id) {
                     $id = (int)$id;
                     if (isset($fullProductsData[$id])) {
                         $product = $fullProductsData[$id];
+                        
+                        $discountedPrice = PriceHelper::getPriceDiscounted($product);
+                        $actualPrice = PriceHelper::getPriceShow($product);
+
+                        $discountText = ($discountedPrice != $product->price) ? "-{$product->discount}%" : "0%";
+                        $actualPriceText = ($discountedPrice != $product->price) ? "{$actualPrice}֏" : '';
+
                         $finalProductsList[] = [
                             'id' => $product['id'],
                             'name' => $product['name'],
                             'price' => $product['price'],
+                            'actual_price' => $product['price'],
                             'description' => $product['description'],
-                            'currency' => $product['currency'] ?? 'USD',
                             'discount' => $product['discount'] ?? 0,
-                            'brand_name' => $product['brand_name'] ?? 'N/A',
-                            'slug' => $product['slug'],
                             'image_url' => $product['image_url'],
                         ];
                     }
@@ -259,11 +270,10 @@ class ChatBotController extends Controller
                 'products' => empty($finalProductsList) ? null : $finalProductsList,
                 'category_searched' => $categoryNames,
             ]);
-            
+
         } catch (\Exception $e) {
             \Log::error("AI Final Answer Error: " . $e->getMessage());
             return response()->json(['message' => 'An unexpected error occurred during the final response generation.'], 500);
         }
-
     }
 }
